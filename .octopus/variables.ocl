@@ -25,3 +25,7 @@ variable "Project.Deployment.Name" {
 variable "Project.Ingress.Name" {
     value "octopub-ingress" {}
 }
+
+variable "Project.Canary.WaitPeriod" {
+    value "60" {}
+}
