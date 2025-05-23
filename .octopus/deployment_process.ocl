@@ -35,12 +35,12 @@ step "create-namespace-if-not-exists" {
 }
 
 step "create-products-app-service" {
-    name = "Create products app service"
+    name = "Create frontend app service"
     properties = {
         Octopus.Action.TargetRoles = "octopub"
     }
 
-    action {
+    action "create-frontend-app-service" {
         action_type = "Octopus.KubernetesDeployRawYaml"
         properties = {
             Octopus.Action.Kubernetes.DeploymentTimeout = "180"
@@ -115,7 +115,7 @@ step "deploy-products-deployment" {
                 apiVersion: apps/v1
                 kind: Deployment
                 metadata:
-                  name: #{Project.Deployment.Name}
+                  name: #{Project.Deployment.Name}-canary
                 spec:
                   replicas: 1
                   selector:
