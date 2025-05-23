@@ -508,7 +508,7 @@ step "rollback-canary-deployment" {
                 
                 if ("#{Octopus.Action[Detect cancelled canary rollout].Output.Cancelled}" -ieq "true") {
                 
-                	$deployment = $OctopusParameters["OctoPetShop.WebApp.ServiceName"]
+                	$deployment = $OctopusParameters["Project.Deployment.Name"]
                 	$canary = $deployment + "-canary"
                 
                 	kubectl scale --current-replicas=3 --replicas=1 deployment/$deployment
