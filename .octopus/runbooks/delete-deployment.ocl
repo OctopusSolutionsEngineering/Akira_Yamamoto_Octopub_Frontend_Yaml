@@ -10,4 +10,25 @@ run_retention_policy {
     quantity_to_keep = 100
 }
 
-process {}
+process {
+    step "delete-deployment" {
+        name = "Delete deployment"
+        properties = {
+            Octopus.Action.TargetRoles = "octopub"
+        }
+
+        action {
+            action_type = "Octopus.KubernetesRunScript"
+            properties = {
+                Octopus.Action.Script.ScriptBody = <<-EOT
+                    $deployment = $OctopusParameters["OctoPetShop.WebApp.ServiceName"]
+                    
+                    kubectl delete deployment $deployment
+                    EOT
+                Octopus.Action.Script.ScriptSource = "Inline"
+                Octopus.Action.Script.Syntax = "PowerShell"
+            }
+            worker_pool_variable = ""
+        }
+    }
+}
