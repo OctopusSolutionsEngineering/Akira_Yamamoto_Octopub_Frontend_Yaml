@@ -51,18 +51,18 @@ step "create-products-app-service" {
                 apiVersion: v1
                 kind: Service
                 metadata:
-                  name: octopub-productservice-cluster-ip
+                  name: octopub-frontend-cluster-ip
                   labels:
                     component: #{Project.Labels.Component}
+                    type: main
                 spec:
                   type: ClusterIP
                   selector:
                     component: #{Project.Labels.Component}
-                    type: main
                   ports:
-                    - port: 8083
-                      targetPort: 8083
-                      name: http-product
+                    - port: 8080
+                      targetPort: 8080
+                      name: http-port
                 EOT
             Octopus.Action.KubernetesContainers.Namespace = "#{Octopub.Yaml.Cluster.Namespace}"
             Octopus.Action.RunOnServer = "false"
@@ -115,7 +115,7 @@ step "deploy-products-deployment" {
                 apiVersion: apps/v1
                 kind: Deployment
                 metadata:
-                  name: #{Project.Deployment.Name}-canary
+                  name: #{Project.Deployment.Name}
                 spec:
                   replicas: 1
                   selector:
@@ -129,32 +129,11 @@ step "deploy-products-deployment" {
                         type: canary
                     spec:
                       containers:
-                        - name: productservice
-                          image: octopussamples/octopub-products-microservice-mysql:#{Project.Container.Tag}
+                        - name: web
+                          image: octopussamples/octopub-frontend:#{Project.Container.Tag}
                           ports:
-                            - name: http-product
-                              containerPort: 8083
-                          env:
-                            - name: DATABASE_PASSWORD
-                              valueFrom:
-                                secretKeyRef:
-                                  name: database-credentials
-                                  key: database-password
-                            - name: DATABASE_HOSTNAME
-                              value: "#{Octopub.Yaml.Database.Server.Name}"
-                            - name: DATABASE_PORT
-                              value: "3306"
-                            - name: DATABASE_NAME
-                              value: "#{Octopub.Yaml.Database.Name}"
-                            - name: DATABASE_USERNAME
-                              valueFrom:
-                                secretKeyRef:
-                                  name: database-credentials
-                                  key: database-user
-                            - name: MIGRATE_AT_START
-                              value: "false"
-                            - name: COGNITO_DISABLE_AUTH
-                              value: "true"
+                            - containerPort: 8080
+                              name: http-port
                 EOT
             Octopus.Action.KubernetesContainers.CustomResourceYamlFileName = "*.yaml"
             Octopus.Action.KubernetesContainers.Namespace = "#{Octopub.Yaml.Cluster.Namespace}"
@@ -164,10 +143,10 @@ step "deploy-products-deployment" {
         }
         worker_pool_variable = ""
 
-        packages "octopub-products" {
+        packages "octopub-frontend" {
             acquisition_location = "NotAcquired"
             feed = "docker-hub"
-            package_id = "octopussamples/octopub-products-microservice-mysql"
+            package_id = "octopussamples/octopub-frontend"
             properties = {
                 Extract = "False"
                 Purpose = ""
@@ -194,7 +173,7 @@ step "add-canary-pods-to-service" {
                 apiVersion: v1
                 kind: Service
                 metadata:
-                  name: octopub-productservice-cluster-ip
+                  name: octopub-frontend-cluster-ip
                   labels:
                     component: #{Project.Labels.Component}
                 spec:
@@ -202,9 +181,9 @@ step "add-canary-pods-to-service" {
                   selector:
                     component: #{Project.Labels.Component}
                   ports:
-                    - port: 8083
-                      targetPort: 8083
-                      name: http-product
+                    - port: 8080
+                      targetPort: 8080
+                      name: http-port
                 EOT
             Octopus.Action.KubernetesContainers.Namespace = "#{Octopub.Yaml.Cluster.Namespace}"
             Octopus.Action.RunOnServer = "false"
@@ -397,32 +376,11 @@ step "update-main-products-app-service" {
                         type: main
                     spec:
                       containers:
-                        - name: productservice
-                          image: octopussamples/octopub-products-microservice-mysql:#{Project.Container.Tag}
+                        - name: web
+                          image: octopussamples/octopub-frontend:#{Project.Container.Tag}
                           ports:
-                            - name: http-product
-                              containerPort: 8083
-                          env:
-                            - name: DATABASE_PASSWORD
-                              valueFrom:
-                                secretKeyRef:
-                                  name: database-credentials
-                                  key: database-password
-                            - name: DATABASE_HOSTNAME
-                              value: "#{Octopub.Yaml.Database.Server.Name}"
-                            - name: DATABASE_PORT
-                              value: "3306"
-                            - name: DATABASE_NAME
-                              value: "#{Octopub.Yaml.Database.Name}"
-                            - name: DATABASE_USERNAME
-                              valueFrom:
-                                secretKeyRef:
-                                  name: database-credentials
-                                  key: database-user
-                            - name: MIGRATE_AT_START
-                              value: "false"
-                            - name: COGNITO_DISABLE_AUTH
-                              value: "true"
+                            - containerPort: 8080
+                              name: http-port
                 EOT
             Octopus.Action.KubernetesContainers.Namespace = "#{Octopub.Yaml.Cluster.Namespace}"
             Octopus.Action.RunOnServer = "false"
@@ -430,10 +388,10 @@ step "update-main-products-app-service" {
         }
         worker_pool_variable = ""
 
-        packages "octopub-products" {
+        packages "octopub-frontend" {
             acquisition_location = "NotAcquired"
             feed = "docker-hub"
-            package_id = "octopussamples/octopub-products-microservice-mysql"
+            package_id = "octopussamples/octopub-frontend"
             properties = {
                 Extract = "False"
                 Purpose = ""
@@ -460,7 +418,7 @@ step "remove-canary-pods-from-service" {
                 apiVersion: v1
                 kind: Service
                 metadata:
-                  name: octopub-productservice-cluster-ip
+                  name: octopub-frontend-cluster-ip
                   labels:
                     component: #{Project.Labels.Component}
                 spec:
@@ -469,9 +427,9 @@ step "remove-canary-pods-from-service" {
                     component: #{Project.Labels.Component}
                     type: main
                   ports:
-                    - port: 8083
-                      targetPort: 8083
-                      name: http-product
+                    - port: 8080
+                      targetPort: 8080
+                      name: http-port
                 EOT
             Octopus.Action.KubernetesContainers.Namespace = "#{Octopub.Yaml.Cluster.Namespace}"
             Octopus.Action.RunOnServer = "false"
