@@ -20,8 +20,10 @@ process {
         action {
             action_type = "Octopus.KubernetesRunScript"
             properties = {
+                Octopus.Action.KubernetesContainers.Namespace = "#{Octopub.Yaml.Cluster.Namespace}"
+                Octopus.Action.RunOnServer = "false"
                 Octopus.Action.Script.ScriptBody = <<-EOT
-                    $deployment = $OctopusParameters["OctoPetShop.WebApp.ServiceName"]
+                    $deployment = $OctopusParameters["Project.Deployment.Name"]
                     
                     kubectl delete deployment $deployment
                     EOT
